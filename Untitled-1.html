@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>CAVABIQUINI – Gerador de Códigos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --text: #333;
+      --card: #fff;
+      --border: #ccc;
+      --accent: #d81b60;
+      --accent-hover: #ad134c;
+    }
+    body.dark {
+      --bg: #1e1e1e;
+      --text: #f1f1f1;
+      --card: #2b2b2b;
+      --border: #555;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: var(--bg); color: var(--text); transition: background .3s, color .3s; }
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      position: relative;
+    }
+    #temaToggle {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: #fff;
+    }
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: var(--card);
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+      border-radius: 10px;
+    }
+    .hidden { display: none; }
+    label { display: block; margin-top: 1rem; }
+    input[type=text], input[type=password] {
+      width: 100%;
+      padding: .6rem;
+      margin: .5rem 0;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: transparent;
+      color: inherit;
+    }
+    button, .file-upload-label {
+      background: var(--accent);
+      color: #fff;
+      padding: .6rem 1.2rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: .5rem;
+      font-weight: bold;
+      transition: .3s;
+      display: inline-block;
+      text-align: center;
+    }
+    button:hover, .file-upload-label:hover {
+      background: var(--accent-hover);
+    }
+    .file-upload-label {
+      position: relative;
+      overflow: hidden;
+    }
+    .file-upload-label input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    .backup-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .menu {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .actions button {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin: 0 5px;
+      color: var(--accent);
+    }
+    .actions button:hover {
+      color: var(--accent-hover);
+    }
+    .search-box {
+      margin-top: 1rem;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .search-box input {
+      flex: 1;
+    }
+    .save-login {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  CAVABIQUINI – Gerador de Códigos
+  <button id="temaToggle" onclick="alternarTema()">🌙</button>
+</header>
+
+<main>
+  <div id="login">
+    <h2>Login</h2>
+    <form onsubmit="fazerLogin(); return false;">
+      <label>Email:</label>
+      <input type="text" id="emailLogin" onkeydown="if(event.key==='Enter') fazerLogin()">
+      <label>Senha:</label>
+      <input type="password" id="senhaLogin" onkeydown="if(event.key==='Enter') fazerLogin()">
+      <div class="save-login">
+        <input type="checkbox" id="salvarLogin"> <label for="salvarLogin">Salvar login</label>
+      </div>
+      <button type="submit">Entrar</button>
+    </form>
+    <p>Não tem conta? <a href="#" onclick="mostrarCadastro()">Cadastre-se</a></p>
+
+    <hr style="margin:1.5rem 0">
+    <h3>Backup / Restauração</h3>
+    <div class="backup-actions">
+      <button onclick="exportarBackup()">Exportar backup CSV</button>
+      <label class="file-upload-label">Importar backup CSV
+        <input type="file" accept=".csv" onchange="importarBackup(event)">
+      </label>
+    </div>
+  </div>
+
+  <div id="cadastro" class="hidden">
+    <h2>Cadastro de Usuário</h2>
+    <label>Email:</label>
+    <input type="text" id="emailCadastro">
+    <label>Senha:</label>
+    <input type="password" id="senhaCadastro">
+    <button onclick="fazerCadastro()">Cadastrar</button>
+    <p>Já tem conta? <a href="#" onclick="mostrarLogin()">Voltar ao login</a></p>
+  </div>
+
+  <div id="sistema" class="hidden">
+    <div class="menu">
+      <div><strong>Usuário:</strong> <span id="usuarioLogado"></span></div>
+      <button onclick="logout()">Sair</button>
+    </div>
+
+    <label>Nome do Produto:</label>
+    <input type="text" id="produto">
+    <button onclick="gerarCodigo()">Gerar Código</button>
+
+    <div class="search-box">
+      <input type="text" id="pesquisa" placeholder="Pesquisar por nome ou sigla..." onkeyup="filtrarTabela()">
+      <span style="font-weight:bold">🔍</span>
+    </div>
+
+    <table id="tabela">
+      <thead>
+        <tr><th>#</th><th>Produto</th><th>Código</th><th>Ações</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="right" style="margin-top:1rem">
+      <button onclick="exportarLista()">Exportar lista (TXT)</button>
+    </div>
+
+    <hr style="margin:2rem 0 1rem">
+    <h3>Backup / Restauração</h3>
+    <div class="backup-actions">
+      <button onclick="exportarBackup()">Exportar backup CSV</button>
+      <label class="file-upload-label">Importar backup CSV
+        <input type="file" accept=".csv" onchange="importarBackup(event)">
+      </label>
+    </div>
+  </div>
+</main>
+<script>
+  let usuarios = JSON.parse(localStorage.getItem('usuarios') || '{}');
+  let usuarioAtual = localStorage.getItem('usuarioAtual');
+  let codigos = [];
+
+  function mostrarCadastro() {
+    login.classList.add('hidden');
+    cadastro.classList.remove('hidden');
+  }
+  function mostrarLogin() {
+    cadastro.classList.add('hidden');
+    login.classList.remove('hidden');
+  }
+
+  function fazerCadastro() {
+    const email = emailCadastro.value.trim(),
+          senha = senhaCadastro.value.trim();
+    if (!email || !senha) return alert('Preencha todos os campos!');
+    if (usuarios[email]) return alert('Usuário já existe!');
+    usuarios[email] = senha;
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    alert('Cadastro realizado!');
+    mostrarLogin();
+  }
+
+  function fazerLogin() {
+    const email = emailLogin.value.trim(),
+          senha = senhaLogin.value.trim();
+    if (usuarios[email] !== senha) return alert('Login inválido!');
+    usuarioAtual = email;
+    localStorage.setItem('usuarioAtual', usuarioAtual);
+    codigos = JSON.parse(localStorage.getItem('codigos_' + usuarioAtual) || '[]');
+    if (salvarLogin.checked) localStorage.setItem('emailSalvo', email);
+    carregarSistema();
+  }
+
+  function logout() {
+    localStorage.removeItem('usuarioAtual');
+    location.reload();
+  }
+
+  function carregarSistema() {
+    login.classList.add('hidden');
+    cadastro.classList.add('hidden');
+    sistema.classList.remove('hidden');
+    usuarioLogado.textContent = usuarioAtual;
+    atualizarTabela();
+  }
+
+  function gerarCodigo() {
+    const nome = produto.value.trim();
+    if (!nome) return alert('Digite o nome do produto!');
+    const codigo = nome.toUpperCase().split(/\s+/).map(p => p[0]).join('');
+    codigos.push({ nome, codigo });
+    salvarCodigos();
+    produto.value = '';
+    atualizarTabela();
+  }
+
+  function salvarCodigos() {
+    localStorage.setItem('codigos_' + usuarioAtual, JSON.stringify(codigos));
+  }
+
+  function atualizarTabela() {
+    const tbody = document.querySelector('#tabela tbody');
+    tbody.innerHTML = '';
+    codigos.forEach((it, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${it.nome}</td>
+        <td>${it.codigo}</td>
+        <td class="actions">
+          <button title="Copiar" onclick="copiarCodigo('${it.codigo}')">📋</button>
+          <button title="Editar" onclick="editarItem(${i})">✏️</button>
+          <button title="Excluir" onclick="excluirItem(${i})">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    filtrarTabela();
+  }
+
+  function copiarCodigo(codigo) {
+    navigator.clipboard.writeText(codigo);
+    alert("Código copiado: " + codigo);
+  }
+
+  function filtrarTabela() {
+    const termo = pesquisa.value.trim().toLowerCase();
+    document.querySelectorAll('#tabela tbody tr').forEach(tr => {
+      const nome = tr.children[1].textContent.toLowerCase();
+      const sigla = tr.children[2].textContent.toLowerCase();
+      tr.style.display = (nome.includes(termo) || sigla.includes(termo)) ? '' : 'none';
+    });
+  }
+
+  function editarItem(idx) {
+    if (!confirm('Deseja editar este item?')) return;
+    const atual = codigos[idx];
+    const novoNome = prompt('Novo nome do produto:', atual.nome);
+    if (novoNome === null) return;
+    const novoCodigo = prompt('Nova sigla (ou deixe vazio para gerar automaticamente):', atual.codigo) || gerarSigla(novoNome);
+    codigos[idx] = { nome: novoNome.trim(), codigo: novoCodigo.trim().toUpperCase() };
+    salvarCodigos();
+    atualizarTabela();
+  }
+
+  function excluirItem(idx) {
+    if (!confirm('Tem certeza que deseja excluir?')) return;
+    codigos.splice(idx, 1);
+    salvarCodigos();
+    atualizarTabela();
+  }
+
+  function gerarSigla(nome) {
+    return nome.toUpperCase().split(/\s+/).map(p => p[0]).join('');
+  }
+
+  function exportarLista() {
+    let txt = 'Lista de Códigos – ' + usuarioAtual + '\n\n';
+    codigos.forEach((it, i) => txt += `${i + 1}. ${it.nome} - ${it.codigo}\n`);
+    baixarArquivo(txt, 'lista_codigos_' + usuarioAtual + '.txt', 'text/plain');
+  }
+
+  function exportarBackup() {
+    let linhas = ['USERS'];
+    for (const [e, s] of Object.entries(usuarios)) linhas.push(`${e};${s}`);
+    linhas.push('', 'CODES');
+    for (const e of Object.keys(usuarios)) {
+      const lista = JSON.parse(localStorage.getItem('codigos_' + e) || '[]');
+      lista.forEach(it => linhas.push(`${e};${it.nome};${it.codigo}`));
+    }
+    baixarArquivo(linhas.join('\n'), 'backup_cavabiquini.csv', 'text/csv');
+  }
+
+  function importarBackup(ev) {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = () => processarCSV(r.result);
+    r.readAsText(file, 'utf-8');
+    ev.target.value = '';
+  }
+
+  function processarCSV(txt) {
+    const linhas = txt.split(/\r?\n/);
+    let sec = '', nu = {}, nc = {};
+    linhas.forEach(l => {
+      l = l.trim();
+      if (!l) return;
+      if (l === 'USERS' || l === 'CODES') {
+        sec = l;
+        return;
+      }
+      if (sec === 'USERS') {
+        const [e, s] = l.split(';');
+        if (e && s) nu[e] = s;
+      }
+      if (sec === 'CODES') {
+        const [e, n, c] = l.split(';');
+        if (e && n && c) {
+          nc[e] ??= [];
+          nc[e].push({ nome: n, codigo: c });
+        }
+      }
+    });
+    usuarios = { ...usuarios, ...nu };
+    for (const [e, lista] of Object.entries(nc)) {
+      const at = JSON.parse(localStorage.getItem('codigos_' + e) || '[]');
+      localStorage.setItem('codigos_' + e, JSON.stringify([...at, ...lista]));
+    }
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    alert('Backup importado com sucesso!');
+    if (usuarioAtual) codigos = JSON.parse(localStorage.getItem('codigos_' + usuarioAtual) || '[]'), atualizarTabela();
+  }
+
+  function baixarArquivo(conteudo, nome, tipo) {
+    const blob = new Blob([conteudo], { type: tipo });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nome;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function alternarTema() {
+    const modo = document.body.classList.toggle("dark") ? "dark" : "light";
+    localStorage.setItem("tema", modo);
+    document.getElementById("temaToggle").textContent = modo === "dark" ? "☀️" : "🌙";
+  }
+
+  function aplicarTemaSalvo() {
+    const temaSalvo = localStorage.getItem("tema");
+    if (temaSalvo === "dark") {
+      document.body.classList.add("dark");
+      document.getElementById("temaToggle").textContent = "☀️";
+    }
+    const salvo = localStorage.getItem("emailSalvo");
+    if (salvo) emailLogin.value = salvo;
+  }
+
+  aplicarTemaSalvo();
+  if (usuarioAtual) carregarSistema();
+</script>
+</body>
+</html>
